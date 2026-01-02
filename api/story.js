@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 /* ===============================
    CORS
@@ -15,38 +15,26 @@ function setCors(req, res) {
 ================================ */
 function safeJson(text) {
   if (!text) return null;
-
   let t = String(text).trim();
   t = t.replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
-
   const first = t.indexOf("{");
   const last = t.lastIndexOf("}");
   if (first === -1 || last === -1 || last <= first) return null;
-
   t = t.slice(first, last + 1);
-  try {
-    return JSON.parse(t);
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(t); } catch { return null; }
 }
 
 /* ===============================
-   raw body parser (Vercel safe)
+   raw body parser
 ================================ */
 async function readBody(req) {
   if (req.body && typeof req.body === "object") return req.body;
-
   return await new Promise((resolve, reject) => {
     let data = "";
-    req.on("data", (chunk) => (data += chunk));
+    req.on("data", c => data += c);
     req.on("end", () => {
       if (!data) return resolve({});
-      try {
-        resolve(JSON.parse(data));
-      } catch (e) {
-        reject(e);
-      }
+      try { resolve(JSON.parse(data)); } catch (e) { reject(e); }
     });
     req.on("error", reject);
   });
@@ -58,20 +46,14 @@ async function readBody(req) {
 const SYSTEM_PROMPT = `
 You are an interactive story engine for a mobile game.
 
-STORY FOUNDATION:
-- The overall plot beats should follow the structure of the Harry Potter story,
-  but all characters, names, and appearances must be completely different.
-- Never output any original Harry Potter names or canon details.
-
-PROTAGONIST:
+- The story structure follows the Harry Potter saga,
+  but all names, characters, and appearances are completely original.
 - The protagonist is Ver Potter (베르 포터).
+- Never use original Harry Potter names.
 
-LANGUAGE:
-- All output must be written in Korean.
-- Only this prompt is in English.
+All output must be in Korean.
 
-OUTPUT:
-Return ONLY valid JSON with this exact structure:
+Return ONLY valid JSON:
 
 {
   "turn": number,
@@ -82,7 +64,7 @@ Return ONLY valid JSON with this exact structure:
     "others": [ { "id": string, "name": string, "expression": string } ]
   },
   "status": { "place": string, "time": string, "summary": string },
-  "question": { "text": string, "input_hint": string, "max_chars": number } | null,
+  "question": { "text": string, "input_hint": string, "max_chars": 140 } | null,
   "delta": {
     "stats": { "sanity": number, "stamina": number, "luck": number },
     "flags_add": string[],
@@ -91,14 +73,7 @@ Return ONLY valid JSON with this exact structure:
   "end": null | { "endingId": string, "title": string, "summary": string }
 }
 
-Rules:
-- narration: 1~3 short paragraphs.
-- Always include exactly ONE question when end is null.
-- question.max_chars must always be 140.
-- Stats delta range: -3 to +3.
-- expression: neutral, smile, angry, sad, surprised, afraid, calm.
-- Never output any original Harry Potter names.
-- No markdown. No explanation. Only JSON.
+No markdown. Only JSON.
 `.trim();
 
 /* ===============================
@@ -106,44 +81,41 @@ Rules:
 ================================ */
 export default async function handler(req, res) {
   setCors(req, res);
-
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const body = await readBody(req);
-    const { state, memory, user_input } = body || {};
-
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: "Missing GEMINI_API_KEY env var" });
     }
 
+    const body = await readBody(req);
+    const { state, memory, user_input } = body || {};
+
     if (!state || typeof user_input !== "string") {
-      return res.status(400).json({
-        error: "Missing required fields: state, user_input",
-        got: { stateType: typeof state, userInputType: typeof user_input }
-      });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    const payload = {
+    const prompt = `${SYSTEM_PROMPT}\n\nINPUT:\n${JSON.stringify({
       state,
-      memory: memory || null,
+      memory,
       user_input
-    };
+    })}`;
 
-    const prompt = `${SYSTEM_PROMPT}\n\nINPUT(JSON):\n${JSON.stringify(payload)}`;
+    const result = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }]
+    });
 
-    const result = await model.generateContent(prompt);
-    const text = result?.response?.text?.() ?? "";
-
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const json = safeJson(text);
+
     if (!json) {
       return res.status(502).json({
         error: "AI returned invalid JSON",
-        raw: String(text).slice(0, 800)
+        raw: text.slice(0, 1000)
       });
     }
 
@@ -151,7 +123,6 @@ export default async function handler(req, res) {
 
   } catch (e) {
     console.error("api/story error:", e);
-    return res.status(500).json({ error: String(e?.message || e) });
+    return res.status(500).json({ error: String(e.message || e) });
   }
 }
-
