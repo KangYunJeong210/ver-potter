@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Ver Potter</title>
+
+    <!-- Fonts (optional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="./css/base.css" />
+    <link rel="stylesheet" href="./css/layout.css" />
+    <link rel="stylesheet" href="./css/game.css" />
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- =========================
+         TITLE SCREEN
+    ========================== -->
+        <section id="screen-title" class="screen screen-title">
+            <div class="title-bg">
+                <!-- 배경은 CSS에서 처리 (assets/bg/bg_title.jpg) -->
+            </div>
+
+            <div class="title-wrap">
+                <div class="brand">
+                    <div class="brand-mark"></div>
+                    <h1 class="brand-title">VER POTTER</h1>
+                    <p class="brand-sub">AI 인터랙티브 스토리</p>
+                </div>
+
+                <div class="menu">
+                    <button class="btn btn-primary" id="btn-new">새로 시작</button>
+                    <button class="btn btn-ghost" id="btn-continue">이어서 하기</button>
+                    <button class="btn btn-ghost" id="btn-endings">엔딩 컬렉션</button>
+                </div>
+
+                <div class="title-foot">
+                    <span class="chip">자유 입력형</span>
+                    <span class="chip">미연시 UI</span>
+                    <span class="chip">엔딩 수집</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================
+         GAME SCREEN
+    ========================== -->
+        <section id="screen-game" class="screen screen-game hidden">
+
+            <!-- TOP HUD -->
+            <header class="hud">
+                <div class="hud-left">
+                    <div class="stat-pill" id="hud-sanity">SAN <b>5</b></div>
+                    <div class="stat-pill" id="hud-stamina">STA <b>5</b></div>
+                    <div class="stat-pill" id="hud-luck">LUK <b>5</b></div>
+                </div>
+
+                <div class="hud-right">
+                    <button class="icon-btn" id="btn-save" aria-label="save">저장</button>
+                    <button class="icon-btn" id="btn-menu" aria-label="menu">메뉴</button>
+                </div>
+            </header>
+
+            <!-- STAGE (캐릭터 이미지가 대사 위에 보이는 영역) -->
+            <main class="stage" aria-label="character stage">
+                <div class="stage-bg" id="stage-bg"></div>
+
+                <!-- 다른 중요한 캐릭터(선택) 썸네일 스트립 -->
+                <div class="cast-strip" id="cast-strip" aria-label="present characters">
+                    <!-- 예시 썸네일(나중에 JS로 교체) -->
+                    <img class="thumb" src="./assets/characters/ver/ch_ver_neutral.png" alt="베르">
+                    <img class="thumb" src="./assets/characters/brainy_friend/ch_brainy_friend_neutral.png" alt="동료A">
+                    <img class="thumb" src="./assets/characters/loyal_friend/ch_loyal_friend_neutral.png" alt="동료B">
+                </div>
+
+                <!-- 메인(현재 발화/중요) 캐릭터 -->
+                <div class="character-hero" id="character-hero">
+                    <img id="char-img" class="char-img" src="./assets/characters/ver/ch_ver_neutral.png" alt="베르 포터" />
+                    <div class="char-name" id="char-name">베르 포터</div>
+                </div>
+            </main>
+
+            <!-- DIALOG PANEL -->
+            <footer class="dialog" aria-label="dialog panel">
+                <div class="dialog-scroll" id="dialog-scroll">
+                    <div class="narration" id="narration">
+                        <p>낡은 벽지 냄새가 코끝을 찔렀다. 편지들은 식탁 위에 수북했고, 누군가 숨을 참는 소리만 집 안에 남아 있었다.</p>
+                        <p>베르는 손끝으로 봉투를 문질렀다. 종이가 이상할 정도로 따뜻했다.</p>
+                    </div>
+
+                    <div class="status" id="status">
+                        <span class="badge">장소</span> 프리벳가 4번가
+                        <span class="dot"></span>
+                        <span class="badge">시간</span> 늦은 밤
+                    </div>
+
+                    <div class="question" id="question">
+                        <div class="q-title">베르는 어떻게 할 거야?</div>
+                        <div class="q-hint">예: 봉투를 뜯는다 / 숨긴다 / 집을 나간다</div>
+                    </div>
+                </div>
+
+                <!-- INPUT -->
+                <div class="input-wrap">
+                    <div class="input-row">
+                        <input id="player-input" class="input" maxlength="140" placeholder="지문을 입력해줘 (최대 140자)"
+                            autocomplete="off" />
+                        <button id="send-btn" class="btn btn-primary">보내기</button>
+                    </div>
+
+                    <!-- 추천 입력 칩(옵션) -->
+                    <div class="chips" id="chips">
+                        <button class="chip-btn" type="button">봉투를 뜯는다</button>
+                        <button class="chip-btn" type="button">숨긴다</button>
+                        <button class="chip-btn" type="button">집을 나간다</button>
+                    </div>
+                </div>
+            </footer>
+
+            <!-- (옵션) 메뉴 모달 / 토스트 자리 -->
+            <div class="toast hidden" id="toast">저장됨</div>
+            <!-- MENU MODAL -->
+            <div id="menu-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+                <div class="modal-backdrop" data-close="1"></div>
+
+                <div class="modal-sheet">
+                    <div class="modal-head">
+                        <h3 id="menu-title" class="modal-title">메뉴</h3>
+                        <button class="icon-btn" id="btn-menu-close" aria-label="close">✕</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="modal-group">
+                            <button class="modal-btn" id="m-save">💾 저장</button>
+                            <button class="modal-btn" id="m-load">📥 불러오기</button>
+                            <button class="modal-btn" id="m-title">🏠 타이틀로</button>
+                        </div>
+
+                        <div class="modal-divider"></div>
+
+                        <div class="modal-group">
+                            <div class="setting-row">
+                                <div class="setting-label">
+                                    <div class="setting-name">텍스트 크기</div>
+                                    <div class="setting-desc">대사/서술 글자 크기</div>
+                                </div>
+                                <select id="s-text-size" class="select">
+                                    <option value="sm">작게</option>
+                                    <option value="md" selected>보통</option>
+                                    <option value="lg">크게</option>
+                                </select>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-label">
+                                    <div class="setting-name">타자 효과</div>
+                                    <div class="setting-desc">대사가 한 글자씩 출력</div>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="s-typewriter" />
+                                    <span class="toggle-ui"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-label">
+                                    <div class="setting-name">BGM</div>
+                                    <div class="setting-desc">배경 음악(추후 연결)</div>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" id="s-bgm" />
+                                    <span class="toggle-ui"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-foot">
+                        <button class="btn btn-ghost" data-close="1">닫기</button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- =========================
+         ENDINGS SCREEN
+    ========================== -->
+        <section id="screen-endings" class="screen screen-endings hidden">
+            <header class="subhead">
+                <button class="icon-btn" id="btn-back-title">←</button>
+                <h2>엔딩 컬렉션</h2>
+                <div style="width:44px;"></div>
+            </header>
+
+            <div class="endings-wrap">
+                <div class="ending-card unlocked">
+                    <div class="ending-top">
+                        <span class="tag">🔓 획득</span>
+                        <span class="id">E_NORMAL_01</span>
+                    </div>
+                    <h3 class="ending-title">거울 너머의 선택</h3>
+                    <p class="ending-desc">베르는 끝까지 손을 뻗었고, 그 선택은 조용히 세계를 바꿨다.</p>
+                </div>
+
+                <div class="ending-card locked">
+                    <div class="ending-top">
+                        <span class="tag">🔒 미획득</span>
+                        <span class="id">E_BAD_02</span>
+                    </div>
+                    <h3 class="ending-title">???</h3>
+                    <p class="ending-desc">조건을 만족하면 해금됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <script type="module" src="./js/app.js"></script>
+    <!-- JS는 다음 단계에서 붙일 예정 -->
+    <!-- <script type="module" src="./js/app.js"></script> -->
+</body>
+
+</html>

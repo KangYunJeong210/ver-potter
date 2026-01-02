@@ -1,0 +1,162 @@
+:root {
+    /* typography */
+    --font: "Pretendard", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+    /* base colors */
+    --bg: #070912;
+    --panel: rgba(13, 16, 32, 0.72);
+    --panel-2: rgba(13, 16, 32, 0.88);
+    --stroke: rgba(255, 255, 255, 0.12);
+    --stroke-2: rgba(255, 255, 255, 0.18);
+
+    --text: rgba(255, 255, 255, 0.92);
+    --muted: rgba(255, 255, 255, 0.68);
+    --dim: rgba(255, 255, 255, 0.52);
+
+    /* accent */
+    --accent: #7c6cff;
+    --accent-2: #42d1ff;
+
+    /* radius & spacing */
+    --r-xl: 22px;
+    --r-lg: 16px;
+    --r-md: 12px;
+
+    --shadow: 0 14px 50px rgba(0, 0, 0, 0.55);
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+    /* safe area */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font);
+    background: radial-gradient(1200px 800px at 60% 10%, rgba(124, 108, 255, 0.20), transparent 55%),
+        radial-gradient(900px 600px at 20% 80%, rgba(66, 209, 255, 0.16), transparent 55%),
+        var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    /* 화면 전환/패널 스크롤만 허용 */
+}
+
+img {
+    display: block;
+    max-width: 100%;
+}
+
+button,
+input {
+    font: inherit;
+    color: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 공통 버튼 */
+.btn {
+    width: 100%;
+    border: 1px solid var(--stroke);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    border-radius: var(--r-lg);
+    padding: 14px 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.btn:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+.btn-primary {
+    border-color: rgba(124, 108, 255, 0.55);
+    background: linear-gradient(135deg, rgba(124, 108, 255, 0.95), rgba(66, 209, 255, 0.75));
+}
+
+.btn-ghost {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.icon-btn {
+    border: 1px solid var(--stroke);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.icon-btn:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+/* 칩/배지 */
+.chip,
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--stroke);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.dot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.35);
+    margin: 0 8px;
+}
+
+/* 입력 */
+.input {
+    width: 100%;
+    border: 1px solid var(--stroke);
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: var(--r-lg);
+    padding: 12px 14px;
+    outline: none;
+}
+
+.input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* 스크롤바 숨김(지원되는 브라우저) */
+.scroll-hide {
+    scrollbar-width: none;
+}
+
+.scroll-hide::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
